@@ -1,26 +1,26 @@
 const xrpl = require("xrpl");
+const fs = require("fs");
 
 async function main() {
-  // Connect to the XRP Testnet
-  const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233")
-  await client.connect()
-  console.log("Connected to XRPL Testnet")
+  const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233");
+  await client.connect();
+  console.log("Connected to XRPL Testnet");
 
-  // Use the testnet faucet to create and fund a new wallet
-  const fundedWallet = await client.fundWallet()
-  console.log("Funded wallet address:", fundedWallet.wallet.address)
-  console.log("Secret:", fundedWallet.wallet.seed)
+  const walletCount = 2; // Change this to however many wallets you want
+  const wallets = [];
 
-  // Check the balance
-  const accountInfo = await client.request({
-    command: "account_info",
-    account: fundedWallet.wallet.address,
-    ledger_index: "validated"
-  })
+  for (let i = 0; i < walletCount; i++) {
+    const fundedWallet = await client.fundWallet();
+    const { address, seed } = fundedWallet.wallet;
 
-  console.log("Balance:", accountInfo.result.account_data.Balance / 1_000_000, "XRP")
+    console.log(`Wallet ${i + 1}: ${address} | Secret: ${seed}`);
+    wallets.push({ address, seed });
+  }
 
-  await client.disconnect()
+  fs.writeFileSync("wallets.json", JSON.stringify(wallets, null, 2));
+  console.log(`\nSaved ${walletCount} wallet(s) to wallets.json`);
+
+  await client.disconnect();
 }
 
-main().catch(console.error)
+main().catch(console.error);
