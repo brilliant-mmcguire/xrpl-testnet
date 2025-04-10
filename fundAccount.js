@@ -10,6 +10,19 @@ function parseArgs() {
   return parsed
 }
 
+async function getBalance(client, address) {
+  try {
+    const response = await client.request({
+      command: "account_info",
+      account: address,
+      ledger_index: "validated",
+    })
+    return xrpl.dropsToXrp(response.result.account_data.Balance)
+  } catch (err) {
+    return "Unavailable"
+  }
+}
+
 async function main() {
   const { name } = parseArgs()
 
@@ -48,10 +61,11 @@ async function main() {
   fs.writeFileSync(file, JSON.stringify(wallets, null, 2))
   console.log(`💾 Saved "${name}" to wallets.json`)
 
-  console.log("\n📋 Current wallets:")
-  wallets.forEach(w => {
-    console.log(` - ${w.name}`)
-  })
+  console.log("\n📋 Current wallets and balances:")
+  for (const w of wallets) {
+    const balance = await getBalance(client, w.address)
+    console.log(` - ${w.name.padEnd(10)} | ${balance} XRP`)
+  }
 
   await client.disconnect()
 }
