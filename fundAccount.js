@@ -48,6 +48,11 @@ async function main() {
   fs.writeFileSync(file, JSON.stringify(wallets, null, 2))
   console.log(`💾 Saved "${name}" to wallets.json`)
 
+  console.log("\n📋 Current wallets:")
+  wallets.forEach(w => {
+    console.log(` - ${w.name}`)
+  })
+
   await client.disconnect()
 }
 
