@@ -1,33 +1,38 @@
 const xrpl = require("xrpl")
 const fs = require("fs")
 
-async function main() {
+function parseArgs() {
   const args = process.argv.slice(2)
-  const reverse = args.includes("--reverse")
+  const parsed = {}
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--from" && args[i + 1]) parsed.from = args[i + 1].toLowerCase()
+    if (args[i] === "--to" && args[i + 1]) parsed.to = args[i + 1].toLowerCase()
+    if (args[i] === "--amount" && args[i + 1]) parsed.amount = args[i + 1]
+  }
+  return parsed
+}
+
+async function main() {
+  const { from = "bob", to = "alice", amount = "10" } = parseArgs()
 
   const wallets = JSON.parse(fs.readFileSync("wallets.json", "utf8"))
-  if (wallets.length < 2) {
-    console.error("Need at least two wallets in wallets.json")
+  const senderInfo = wallets.find(w => w.name.toLowerCase() === from)
+  const receiverInfo = wallets.find(w => w.name.toLowerCase() === to)
+
+  if (!senderInfo || !receiverInfo) {
+    console.error("❌ Invalid --from or --to name. Check wallets.json")
     return
   }
-
-  // Determine sender and receiver
-  const senderInfo = reverse ? wallets[1] : wallets[0]
-  const receiverInfo = reverse ? wallets[0] : wallets[1]
 
   const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233")
   await client.connect()
   console.log("Connected to XRPL Testnet")
 
   const senderWallet = xrpl.Wallet.fromSeed(senderInfo.seed)
+  const amountDrops = xrpl.xrpToDrops(amount)
 
-  // Define transfer amount
-  const amountXrp = "10"
-  const amountDrops = xrpl.xrpToDrops(amountXrp)
+  console.log(`Sending ${amount} XRP from ${from} (${senderInfo.address}) to ${to} (${receiverInfo.address})...\n`)
 
-  console.log(`Sending ${amountXrp} XRP from ${senderInfo.address} to ${receiverInfo.address}...\n`)
-
-  // Create, sign, and submit the transaction
   const tx = await client.autofill({
     TransactionType: "Payment",
     Account: senderWallet.address,

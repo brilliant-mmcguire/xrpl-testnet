@@ -1,9 +1,11 @@
 [
   {
+    "name": "bob",
     "address": "rsPPs2Z8HEJzVyxso7nhsGzw1cnEBYfwqF",
     "seed": "sEdVrCoH8jh26TQpA9ghCj9u3cV8kHc"
   },
   {
+    "name": "alice",
     "address": "rJWonzTbGj1qoVJcMsLN9noNiYSJyboxAS",
     "seed": "sEdSKvV3rGkqVAV5abMtiXRXKi9PpMn"
   }
